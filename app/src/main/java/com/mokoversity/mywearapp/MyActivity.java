@@ -49,6 +49,10 @@ public class MyActivity extends Activity {
 
     private MyActivity mContext;
 
+    private BroadcastReceiver mWeatherUpdater;
+    private IntentFilter mWeatherIntent;
+    private AsyncTask mWeatherTask;
+
     @Override
          protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,7 +64,18 @@ public class MyActivity extends Activity {
         //startService(new Intent("mokoversity.intent.action.REST"));
 
         // Use AsyncTask or work threader (not recommended)
-        new DownloadTask().execute();
+        mWeatherIntent = new IntentFilter("mokoversity.intent.action.WEATHER_UPDATE");
+        mWeatherUpdater = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context arg0, Intent arg1) {
+                mWeatherTask.execute();
+            }
+        };
+        registerReceiver(mWeatherUpdater, mWeatherIntent);
+
+        mWeatherTask = new DownloadTask();
+
+        mWeatherTask.execute();
     }
 
     private void zero() {
@@ -302,6 +317,28 @@ public class MyActivity extends Activity {
         notificationManager.notify(0x08, builder.build());
     }
 
+    private void notifyHumidityWithAction(int humidity, double temp) {
+        String message = "Temp F: " + Double.toString(temp);
+
+        Intent phoneCallIntent = new Intent("mokoversity.intent.action.WEATHER_UPDATE");
+        PendingIntent phoneCallPendingIntent = PendingIntent.getActivity(this, 0, phoneCallIntent, 0);
+
+        // Notification with action
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                .setContentTitle("Weather HongKong")
+                .setContentText(message)
+                .setSmallIcon(R.drawable.bg_eliza)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.bg_eliza))
+                .addAction(R.drawable.ic_full_reply, "Refresh", phoneCallPendingIntent);
+
+        Notification notification = new WearableExtender()
+                .extend(builder)
+                .build();
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.notify(0x01, notification);
+    }
+
     private void invokeRestAPI(String mJsonUrl) {
         /*
         {
@@ -349,7 +386,8 @@ public class MyActivity extends Activity {
             int humidity = json2.getInt("humidity");
             double temp = json2.getDouble("temp");
 
-            notifyHumidity(humidity, temp);
+            ///notifyHumidity(humidity, temp);
+            notifyHumidityWithAction(humidity, temp);
         } catch (JSONException e) {
 
         }

@@ -236,7 +236,8 @@ public class MyActivity extends Activity {
         protected Long doInBackground(URL... urls) {
             long totalSize = 0;
 
-            invokeRestAPI("http://priceover.net/1/price/gold");
+            //invokeRestAPI("http://priceover.net/1/price/gold");
+            invokeOpenWeatherMapAPI("http://api.openweathermap.org/data/2.5/weather?q=HongKong");
 
             return totalSize;
         }
@@ -288,6 +289,19 @@ public class MyActivity extends Activity {
         notificationManager.notify(0x08, builder.build());
     }
 
+    private void notifyHumidity(int humidity, double temp) {
+        String message = "Temp F: " + Double.toString(temp);
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                .setContentTitle("Weather HongKong")
+                .setContentText(message)
+                .setSmallIcon(R.drawable.bg_eliza)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.bg_eliza));
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(this);
+        notificationManager.notify(0x08, builder.build());
+    }
+
     private void invokeRestAPI(String mJsonUrl) {
         /*
         {
@@ -307,13 +321,37 @@ public class MyActivity extends Activity {
             JSONObject json = new JSONObject(jsonStr);
             JSONObject json2 = json.getJSONObject("data");
             int price = json2.getInt("price");
-            double move = json2.getDouble("move");
 
             notifyPrice(price);
         } catch (JSONException e) {
 
         }
+    }
 
+    private void invokeOpenWeatherMapAPI(String mJsonUrl) {
+        /*
+        {
+          "success": true,
+          "errors": [],
+          "errfor": {},
+          "data": {
+            "price": "1311",
+            "move": "-9.38",
+            "timestamp": "2014-07-19T07:36:10.978Z"
+          }
+        }
+        */
+        String jsonStr = retrieveJSONCache(mJsonUrl);
 
+        try {
+            JSONObject json = new JSONObject(jsonStr);
+            JSONObject json2 = json.getJSONObject("main");
+            int humidity = json2.getInt("humidity");
+            double temp = json2.getDouble("temp");
+
+            notifyHumidity(humidity, temp);
+        } catch (JSONException e) {
+
+        }
     }
 }

@@ -320,8 +320,9 @@ public class MyActivity extends Activity {
     private void notifyHumidityWithAction(int humidity, double temp) {
         String message = "Temp F: " + Double.toString(temp);
 
-        Intent phoneCallIntent = new Intent("mokoversity.intent.action.WEATHER_UPDATE");
-        PendingIntent phoneCallPendingIntent = PendingIntent.getActivity(this, 0, phoneCallIntent, 0);
+        Intent intent = new Intent("mokoversity.intent.action.WEATHER_UPDATE");
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent,
+                PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_CANCEL_CURRENT);
 
         // Notification with action
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
@@ -329,7 +330,7 @@ public class MyActivity extends Activity {
                 .setContentText(message)
                 .setSmallIcon(R.drawable.bg_eliza)
                 .setLargeIcon(BitmapFactory.decodeResource(getResources(), R.drawable.bg_eliza))
-                .addAction(R.drawable.ic_full_reply, "Refresh", phoneCallPendingIntent);
+                .addAction(R.drawable.ic_full_reply, "Refresh", intent);
 
         Notification notification = new WearableExtender()
                 .extend(builder)
